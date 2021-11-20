@@ -4,45 +4,29 @@
 
 mod_contexto_ui <- function(id){
     
-    #ns <- NS(id)
-    
     ns <- NS(id)
     tagList(
-        # linha 1
         fluidRow(
-            column(
-                width = 12,
-                # uiOutput para o título porque ele vai ser reativo segundo o tipo,
-                # além de alterar a cor.
-                uiOutput(outputId = ns("titulo"))
-            )
-        ),
-        # espaço em branco
-        br(),
-        # linha 2
-        fluidRow(
-            column(
-                width = 4,
-                selectInput(
-                    inputId = ns("pokemon"),
-                    label = "Selecione um pokémon",
-                    choices = c("Carregando" = "")
-                ),
-                # uiOutput para a imagem porque ela vai alterar também
-                uiOutput(outputId = ns("img_pokemon"))
+            box(
+                width = 6
+                # definir output
             ),
             column(
-                width = 8,
-                plotOutput(outputId = ns("grafico_habilidades"))
+                #offset = 6,
+                width = 6,
+                selectInput(
+                    inputId = ns("tipos_relatorios"),
+                    choices = c("Nacional", "Estadual", "Municipal"),
+                    label = "Selecione a abrangência do relatório."
+                )
             )
+
         ),
-        # espaço em branco
-        br(),
-        # linha 3
         fluidRow(
-            column(
-                width = 12,
-                plotOutput(outputId = ns("grafico_freq"))
+            column(width = 6),
+            box(
+                width = 6,
+                plotOutput(outputId = ns("mapa_relatorios"), height = "800px")
             )
         )
     )
@@ -50,5 +34,12 @@ mod_contexto_ui <- function(id){
 }
 
 # Server ------------------------------------------------------------------
+mod_contexto_server <- function(id, base){
+    moduleServer(id, function(input, output, session){
+        
+        
+        
+    })
+}
 
 
