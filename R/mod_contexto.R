@@ -115,9 +115,8 @@ mod_contexto_server <- function(id, base){
                 # dplyr::filter(mapeamento == "IBÁ - Relatório Anual 2020")
                 dplyr::filter(mapeamento == input$nome_mapeamento)
 
-            highcharter::hcmap(
+                        highcharter::hcmap(
                 map = "countries/br/br-all",
-                #showInLegend = FALSE,
                 nullColor = "#d3d3d3",
                 data = tb_relatorio_selecionado,
                 value = "valor",
@@ -127,8 +126,9 @@ mod_contexto_server <- function(id, base){
                 name = "Estado",
                 dataLabels = list(enabled = TRUE, format = "{point.code}"),
                 tooltip = list(valueDecimals = 2, valuePrefix = "R$"),
+                download_map_data = F
             ) |> 
-                highcharter::hc_legend(ggplot2::element_blank())
+                highcharter::hc_legend(ggplot2::element_blank()) 
             
         })
 

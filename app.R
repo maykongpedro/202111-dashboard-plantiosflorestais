@@ -11,7 +11,7 @@ dados_muni <- plantiosflorestais::mapeamentos_municipios
 
 # shapes
 # shp_brasil <- geobr::read_state() |> 
-#     dplyr::rename(uf = "abbrev_state")
+#  dplyr::rename(uf = "abbrev_state")
 
 # Ui ----------------------------------------------------------------------
 ui <- dashboardPage(
