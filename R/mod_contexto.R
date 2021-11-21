@@ -4,6 +4,22 @@
 
 mod_contexto_ui <- function(id, base){
     
+    # gerar escolha dos relatórios
+    relatorios_uf <- bases |> 
+        purrr::pluck("dados_uf") |> 
+        dplyr::distinct(mapeamento) 
+    
+    relatorios_muni <- bases |> 
+        purrr::pluck("dados_muni") |> 
+        dplyr::distinct(mapeamento)
+    
+    escolhas_relatorios <- 
+        dplyr::bind_rows(relatorios_uf, relatorios_muni) |> 
+        dplyr::distinct(mapeamento) |> 
+        dplyr::arrange(mapeamento) |> 
+        dplyr::pull(mapeamento)
+    
+    
     ns <- NS(id)
     tagList(
         fluidRow(
@@ -25,7 +41,8 @@ mod_contexto_ui <- function(id, base){
                 selectInput(
                     inputId = ns("nome_mapeamento"),
                     label = "Selecione um mapeamento",
-                    choices = unique(base$mapeamento)
+                    choices = escolhas_relatorios,
+                    selected = escolhas_relatorios[7]
                 )
             )
 
@@ -36,7 +53,8 @@ mod_contexto_ui <- function(id, base){
                 width = 6,
                 # plotOutput(outputId = ns("mapa_relatorios"), height = "800px")
                 # plotOutput(outputId = ns("mapa_relatorios"))
-                highcharter::highchartOutput(outputId = ns("mapa_relatorios"), height = "800px")
+                highcharter::highchartOutput(outputId = ns("mapa_relatorios"), 
+                                             height = "800px")
             )
         )
     )
@@ -44,7 +62,7 @@ mod_contexto_ui <- function(id, base){
 }
 
 # Server ------------------------------------------------------------------
-mod_contexto_server <- function(id, base){
+mod_contexto_server <- function(id, bases){
     moduleServer(id, function(input, output, session){
         
         # output$mapa_relatorios <- renderPlot({
@@ -103,8 +121,8 @@ mod_contexto_server <- function(id, base){
         output$mapa_relatorios <- highcharter::renderHighchart({
             
             # gerar resumo de relatório existente por estado
-            tb_relatorio_uf <- base |>
-                # dados_uf |>
+            tb_relatorio_uf <- bases |>
+                purrr::pluck("dados_uf") |> 
                 dplyr::distinct(mapeamento, uf) |>
                 dplyr::filter(!is.na(uf)) |>
                 dplyr::group_by(mapeamento) |>
@@ -115,7 +133,7 @@ mod_contexto_server <- function(id, base){
                 # dplyr::filter(mapeamento == "IBÁ - Relatório Anual 2020")
                 dplyr::filter(mapeamento == input$nome_mapeamento)
 
-                        highcharter::hcmap(
+            highcharter::hcmap(
                 map = "countries/br/br-all",
                 nullColor = "#d3d3d3",
                 data = tb_relatorio_selecionado,
@@ -125,10 +143,12 @@ mod_contexto_server <- function(id, base){
                 borderWidth = 0.1,
                 name = "Estado",
                 dataLabels = list(enabled = TRUE, format = "{point.code}"),
-                tooltip = list(valueDecimals = 2, valuePrefix = "R$"),
+                tooltip = list(valueDecimals = 0),
                 download_map_data = F
-            ) |> 
-                highcharter::hc_legend(ggplot2::element_blank()) 
+            ) |>
+                highcharter::hc_legend(ggplot2::element_blank()) |>
+                highcharter::hc_colorAxis(minColor = "#008d4c",
+                                          maxColor = "#008d4c")
             
         })
 
