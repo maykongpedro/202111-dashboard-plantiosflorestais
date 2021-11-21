@@ -9,6 +9,12 @@ library(shinydashboard)
 dados_uf <- plantiosflorestais::mapeamentos_estados
 dados_muni <- plantiosflorestais::mapeamentos_municipios
 
+# alocar as duas bases em uma lista
+bases <- list(
+  dados_uf = dados_uf,
+  dados_muni = dados_muni
+)
+
 # shapes
 # shp_brasil <- geobr::read_state() |> 
 #  dplyr::rename(uf = "abbrev_state")
@@ -37,7 +43,11 @@ ui <- dashboardPage(
         tabItems(
             tabItem(
                 tabName = "contexto",
-                mod_contexto_ui("contexto_geral", dados_uf)
+                mod_contexto_ui("contexto_geral", bases)
+            ),
+            tabItem(
+              tabName = "info_uf",
+              mod_infos_uf_ui("informacoes_uf", bases["dados_uf"])
             )
         )
     )
@@ -47,9 +57,8 @@ ui <- dashboardPage(
 
 # Server ------------------------------------------------------------------
 server <- function(input, output, session) {
-  
-    mod_contexto_server("contexto_geral", dados_uf)
-    
+  mod_contexto_server("contexto_geral", bases)
+  mod_infos_uf_server("informacoes_uf", bases["dados_uf"])
 }
 
 shinyApp(ui, server)
