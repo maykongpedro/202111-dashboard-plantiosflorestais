@@ -4,9 +4,14 @@ library(shinydashboard)
 
 
 # Carregar bases ----------------------------------------------------------
+
+# dados sobre florestas
 dados_uf <- plantiosflorestais::mapeamentos_estados
 dados_muni <- plantiosflorestais::mapeamentos_municipios
 
+# shapes
+# shp_brasil <- geobr::read_state() |> 
+#     dplyr::rename(uf = "abbrev_state")
 
 # Ui ----------------------------------------------------------------------
 ui <- dashboardPage(
@@ -32,7 +37,7 @@ ui <- dashboardPage(
         tabItems(
             tabItem(
                 tabName = "contexto",
-                mod_contexto_ui("contexto_geral")
+                mod_contexto_ui("contexto_geral", dados_uf)
             )
         )
     )
@@ -43,7 +48,7 @@ ui <- dashboardPage(
 # Server ------------------------------------------------------------------
 server <- function(input, output, session) {
   
-    mod_contexto_server("contexto")
+    mod_contexto_server("contexto_geral", dados_uf)
     
 }
 
