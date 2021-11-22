@@ -4,28 +4,27 @@ library(shinydashboard)
 
 
 # Carregar bases ----------------------------------------------------------
+dados <- readr::read_rds("data/dados_completos.rds")
 
 # dados sobre florestas
-dados_uf <- plantiosflorestais::mapeamentos_estados
-dados_muni <- plantiosflorestais::mapeamentos_municipios
+# dados_uf <- readr::read_rds("./data/dados_uf.rds")
+# dados_muni <- readr::read_rds("./data/dados_muni.rds")
 
 # alocar as duas bases em uma lista
-bases <- list(
-  dados_uf = dados_uf,
-  dados_muni = dados_muni
-)
+# bases <- list(
+#   dados_uf = dados_uf,
+#   dados_muni = dados_muni
+# )
 
-# shapes
-# shp_brasil <- geobr::read_state() |> 
-#  dplyr::rename(uf = "abbrev_state")
+# shape dos estados
+shp_br <- 
+  geobr::read_state() |> 
+  dplyr::rename(uf = abbrev_state)
 
-# abrindo no excel
-# dados_uf |> viewxl::view_in_xl()
-# dados_muni |> viewxl::view_in_xl()
 
 # Ui ----------------------------------------------------------------------
 ui <- dashboardPage(
-  
+
     skin = "green",
     header = dashboardHeader(
         title = "Plantios florestais"
@@ -44,25 +43,29 @@ ui <- dashboardPage(
         )
     ),
     body = dashboardBody(
-        tabItems(
-            tabItem(
-                tabName = "contexto",
-                mod_contexto_ui("contexto_geral", bases)
-            ),
-            tabItem(
-              tabName = "info_uf",
-              mod_infos_uf_ui("informacoes_uf", bases)
-            )
+      tabItems(
+        tabItem(
+          tabName = "contexto",
+          mod_contexto_ui("contexto_geral", dados)
+        ),
+        tabItem(
+          tabName = "info_uf",
+          # mod_infos_uf_ui("informacoes_uf", dados)
         )
+      )
     )
-    
 )
+    
+    
 
 
 # Server ------------------------------------------------------------------
 server <- function(input, output, session) {
-  mod_contexto_server("contexto_geral", bases)
-  mod_infos_uf_server("informacoes_uf", bases)
+  mod_contexto_server("contexto_geral", dados, shp_br)
+  mod_infos_uf_server("informacoes_uf", dados)
+  
+  
+  
 }
 
 shinyApp(ui, server)
