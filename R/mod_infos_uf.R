@@ -119,7 +119,8 @@ mod_infos_uf_server <- function(id, bases) {
                 #     #definir cores
                 #     colors = c('#000004', '#B63679', '#FCFDBF')
                 # ) |>
-                # highcharter::hc_xAxis(title = "Estado") |> 
+                highcharter::hc_xAxis(title = list(text = "Estado")) |>
+                
                 # highcharter::hc_yAxis(title = "Área em hectares") |> 
                 highcharter::hc_add_theme(highcharter::hc_theme_elementary()) 
 
