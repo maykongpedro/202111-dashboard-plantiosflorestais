@@ -19,6 +19,10 @@ bases <- list(
 # shp_brasil <- geobr::read_state() |> 
 #  dplyr::rename(uf = "abbrev_state")
 
+# abrindo no excel
+# dados_uf |> viewxl::view_in_xl()
+# dados_muni |> viewxl::view_in_xl()
+
 # Ui ----------------------------------------------------------------------
 ui <- dashboardPage(
   
@@ -47,7 +51,7 @@ ui <- dashboardPage(
             ),
             tabItem(
               tabName = "info_uf",
-              mod_infos_uf_ui("informacoes_uf", bases["dados_uf"])
+              mod_infos_uf_ui("informacoes_uf", bases)
             )
         )
     )
@@ -58,7 +62,7 @@ ui <- dashboardPage(
 # Server ------------------------------------------------------------------
 server <- function(input, output, session) {
   mod_contexto_server("contexto_geral", bases)
-  mod_infos_uf_server("informacoes_uf", bases["dados_uf"])
+  mod_infos_uf_server("informacoes_uf", bases)
 }
 
 shinyApp(ui, server)
