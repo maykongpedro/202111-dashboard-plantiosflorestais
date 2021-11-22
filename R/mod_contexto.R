@@ -51,8 +51,6 @@ mod_contexto_ui <- function(id, base){
             column(width = 6),
             box(
                 width = 6,
-                # plotOutput(outputId = ns("mapa_relatorios"), height = "800px")
-                # plotOutput(outputId = ns("mapa_relatorios"))
                 highcharter::highchartOutput(outputId = ns("mapa_relatorios"), 
                                              height = "800px")
             )
