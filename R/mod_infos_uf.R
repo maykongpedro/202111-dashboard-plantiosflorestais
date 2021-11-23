@@ -136,12 +136,14 @@ mod_infos_uf_server <- function(id, dados) {
         
         
         output$plot_genero <- highcharter::renderHighchart({
-            
+            dados$mapeamento |> unique()
             # total de área por estado
             tb_total_uf <- dados |> 
                 # dplyr::filter(
-                #     ano_base == "2019",
-                #     mapeamento == "IBÁ - Relatório Anual 2020",
+                #     # ano_base == "2019",
+                #     ano_base == "2012",
+                #     #mapeamento == "IBÁ - Relatório Anual 2020",
+                #     mapeamento == "Famato - Diagnóstico de florestas plantadas do Estado de Mato Grosso - 2013",
                 #     # uf %in% c("PR", "SC", "RS")
                 #     uf %in% unique(dados$uf)
                 # ) |>
@@ -157,8 +159,10 @@ mod_infos_uf_server <- function(id, dados) {
             # total de área por estado e por gênero
             tb_total_genero <- dados |> 
                 # dplyr::filter(
-                #     ano_base == "2019",
-                #     mapeamento == "IBÁ - Relatório Anual 2020",
+                #     # ano_base == "2019",
+                #     ano_base == "2012",
+                #     #mapeamento == "IBÁ - Relatório Anual 2020",
+                #     mapeamento == "Famato - Diagnóstico de florestas plantadas do Estado de Mato Grosso - 2013",
                 #     # uf %in% c("PR", "SC", "RS")
                 #     uf %in% unique(dados$uf)
                 # ) |>
@@ -178,11 +182,24 @@ mod_infos_uf_server <- function(id, dados) {
                     dplyr::desc(area_uf),
                     dplyr::desc(area_tot),
                     ) |> 
-                dplyr::select(-area_uf)
-            
-            
+                dplyr::select(-area_uf) |> 
+                dplyr::mutate(
+                    genero = factor(
+                        genero,
+                        levels = c(
+                            "Eucalyptus",
+                            "Pinus",
+                            "Outros",
+                            "Corte",
+                            "Acacia",
+                            "Tectona"
+                            ),
+                        ordered = TRUE
+                        )
+                    )
+                        
+            # montando plot
             tb_plot |> 
- 
                 highcharter::hchart(
                     type = "column",
                     highcharter::hcaes(
@@ -194,12 +211,17 @@ mod_infos_uf_server <- function(id, dados) {
                     ) |> 
                 highcharter::hc_colors(
                     #definir cores
-                    colors = c('#000004', '#B63679', '#FCFDBF')
-                    # colors = definir_cores_genero(tb_plot$genero)
+                    #colors = c('#35B779', '#31688E')
+                    # colors = c('#35B779', '#ED7953', '#31688E')
+                    #colors = c('#35B779', '#ED7953', '#31688E', '#31688E', '#721F81', '233E6C' )
+                    colors = definir_cores_genero(tb_plot)
                 ) |>
                 # "eucalipto" = "#35B779",
                 # "pinus" = "#ED7953",
                 # "outros" = "#31688E",
+                # "corte" = "#575C6D"
+                # "acacia" = "#721F81"
+                # "tectona" = #233E6C"
                 highcharter::hc_xAxis(title = list(text = "Estado")) |>
                 highcharter::hc_yAxis(title = list(text = "Área em hectares")) |>
                 highcharter::hc_title(text = "Área plantada por gênero e estado") |> 
