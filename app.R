@@ -7,6 +7,19 @@ library(shinydashboard)
 dados <- readr::read_rds("data/dados_completos.rds")
 # dados |> dplyr::glimpse()
 
+# ajustando o fator dos gênero
+dados <- dados |>
+  dplyr::mutate(genero = factor(
+    genero,
+    levels = c("Eucalyptus",
+               "Pinus",
+               "Outros",
+               "Corte",
+               "Acacia",
+               "Tectona"),
+    ordered = TRUE
+  ))
+    
 
 # shape dos estados
 # shp_br <-
