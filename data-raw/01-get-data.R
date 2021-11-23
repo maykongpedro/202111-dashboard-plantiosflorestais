@@ -43,6 +43,19 @@ dados_completos <- dplyr::bind_rows(dados_uf, dados_muni_agrupados)
 dados_completos |> View()
 
 
+# ajustando o fator dos gênero
+dados_completos <- dados_completos |>
+    dplyr::mutate(genero = factor(
+        genero,
+        levels = c("Eucalyptus",
+                   "Pinus",
+                   "Outros",
+                   "Corte",
+                   "Acacia",
+                   "Tectona"),
+        ordered = TRUE
+    ))
+
 # Exportar dados ----------------------------------------------------------
 dados_uf |> saveRDS("./data/dados_uf.rds")
 dados_muni |> saveRDS("./data/dados_muni.rds")
