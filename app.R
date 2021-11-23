@@ -5,21 +5,13 @@ library(shinydashboard)
 
 # Carregar bases ----------------------------------------------------------
 dados <- readr::read_rds("data/dados_completos.rds")
+# dados |> dplyr::glimpse()
 
-# dados sobre florestas
-# dados_uf <- readr::read_rds("./data/dados_uf.rds")
-# dados_muni <- readr::read_rds("./data/dados_muni.rds")
-
-# alocar as duas bases em uma lista
-# bases <- list(
-#   dados_uf = dados_uf,
-#   dados_muni = dados_muni
-# )
 
 # shape dos estados
-shp_br <- 
-  geobr::read_state() |> 
-  dplyr::rename(uf = abbrev_state)
+# shp_br <-
+#   geobr::read_state() |>
+#   dplyr::rename(uf = abbrev_state)
 
 
 # Ui ----------------------------------------------------------------------
@@ -50,7 +42,7 @@ ui <- dashboardPage(
         ),
         tabItem(
           tabName = "info_uf",
-          # mod_infos_uf_ui("informacoes_uf", dados)
+          mod_infos_uf_ui("informacoes_uf", dados)
         )
       )
     )
@@ -61,10 +53,9 @@ ui <- dashboardPage(
 
 # Server ------------------------------------------------------------------
 server <- function(input, output, session) {
+  
   mod_contexto_server("contexto_geral", dados, shp_br)
   mod_infos_uf_server("informacoes_uf", dados)
-  
-  
   
 }
 

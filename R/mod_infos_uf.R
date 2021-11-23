@@ -1,35 +1,34 @@
 
 # Ui ----------------------------------------------------------------------
 
-mod_infos_uf_ui <- function(id, bases){
+mod_infos_uf_ui <- function(id, dados){
     
-    # gerar escolha dos relatórios -> transformar em um uiOutput
-    escolhas_relatorios <- bases |> 
-        purrr::pluck("dados_uf") |> 
-        dplyr::distinct(mapeamento) |> 
-        dplyr::arrange(mapeamento) |> 
-        dplyr::pull(mapeamento)
-    
-    # gerar escolhas ano base (isso vai ser o principal)
-    escolhas_ano_base <- bases |> 
-        purrr::pluck("dados_uf") |>
+    # gerar escolhas ano base
+    escolhas_ano_base <- dados |> 
         dplyr::mutate(ano_base = as.double(ano_base)) |> 
         dplyr::distinct(ano_base) |> 
         dplyr::arrange(ano_base) |> 
         dplyr::pull(ano_base)
     
+    # gerar escolha dos relatórios -> usar um observer
+    # escolhas_relatorios <- dados |> 
+    #     dplyr::distinct(mapeamento) |> 
+    #     dplyr::arrange(mapeamento) |> 
+    #     dplyr::pull(mapeamento)
+    
+
+    
     # transformar a função acima em uma function separada em outro script R
     
     # gerar escolhas de uf -> transformar em um uiOutput
-    # retirar NA das escolhas
-    escolhas_uf <- bases |> 
-        purrr::pluck("dados_uf") |>
+    escolhas_uf <- dados |> 
         dplyr::distinct(uf) |> 
-        dplyr::arrange(uf) |> 
+        dplyr::arrange(uf) |>
+        tidyr::drop_na() |> 
         dplyr::pull(uf)
     
     
-    ns <- NS(id)
+    ns <- shiny::NS(id)
     tagList(
         fluidRow(
             column(
@@ -47,11 +46,15 @@ mod_infos_uf_ui <- function(id, bases){
             ),
             column(
                 width = 4,
+                # shiny::uiOutput(outputId =ns("nome_mapeamento"))
                 selectInput(
                     inputId = ns("nome_mapeamento"),
                     label = "Selecione um mapeamento",
-                    choices = escolhas_relatorios,
-                    selected = escolhas_relatorios[1]
+                    choices = c("Carregando..." = "")
+                    # selectize = TRUE,
+                    #selected = escolhas_relatorios[1]
+                    # choices = escolhas_relatorios,
+                    # selected = escolhas_relatorios[1]
                     # width = "300px"
                 )
             ),
@@ -60,8 +63,9 @@ mod_infos_uf_ui <- function(id, bases){
                 shinyWidgets::pickerInput(
                     inputId = ns("uf"),
                     label = "Selecione o estado de interesse.",
-                    choices = escolhas_uf,
-                    selected = escolhas_uf,
+                    choices = c("Carregando..." = ""),
+                    # choices = escolhas_uf,
+                    # selected = escolhas_uf,
                     multiple = TRUE,
                     options = list(`actions-box` = TRUE)
                 )
@@ -81,31 +85,104 @@ mod_infos_uf_ui <- function(id, bases){
 
 # Server ------------------------------------------------------------------
 
-mod_infos_uf_server <- function(id, bases) {
+mod_infos_uf_server <- function(id, dados) {
     moduleServer(id, function(input, output, session) {
+        
+        # atualizando a lista de mapeamento disponíveis de acordo com o ano
+        shiny::observe({
+            
+            # gerar escolhas dos relatórios
+            escolhas_relatorios <- dados |>
+                dplyr::filter(ano_base == input$ano_base) |> 
+                dplyr::distinct(mapeamento) |>
+                dplyr::arrange(mapeamento) |>
+                dplyr::pull(mapeamento)
+            
+            # atualizar select input definido na ui
+            shiny::updateSelectInput(
+                session = session,
+                inputId = "nome_mapeamento",
+                choices = escolhas_relatorios,
+                selected = escolhas_relatorios[1]
+            )
+
+        })
+        
+        # atualizando a lista de estados disponíveis de acordo com o relatório
+        shiny::observeEvent(
+            eventExpr = input$nome_mapeamento, 
+            handlerExpr = {
+    
+            # gerar escolhas dos estados
+            escolhas_uf <- dados |> 
+                dplyr::filter(
+                    ano_base == input$ano_base,
+                    mapeamento == input$nome_mapeamento
+                ) |> 
+                dplyr::distinct(uf) |> 
+                dplyr::arrange(uf) |>
+                tidyr::drop_na() |> 
+                dplyr::pull(uf)
+            
+            # atualizar select input dos estados
+            shinyWidgets::updatePickerInput(
+                session = session,
+                inputId = "uf",
+                choices = escolhas_uf,
+                selected = escolhas_uf
+            )
+            
+        })
+        
         
         output$plot_genero <- highcharter::renderHighchart({
             
-            # quanto atualizo o estado ele não está fazendo o arrange
-            
-            tb_plot <- bases |> 
-                purrr::pluck("dados_uf") |> 
+            # total de área por estado
+            tb_total_uf <- dados |> 
                 # dplyr::filter(
                 #     ano_base == "2019",
                 #     mapeamento == "IBÁ - Relatório Anual 2020",
                 #     # uf %in% c("PR", "SC", "RS")
-                #     uf %in% unique(bases$dados_uf$uf)
-                # ) |> 
+                #     uf %in% unique(dados$uf)
+                # ) |>
+                dplyr::filter(
+                    ano_base == input$ano_base,
+                    mapeamento == input$nome_mapeamento,
+                    uf %in% input$uf
+                    ) |>
+                dplyr::group_by(uf) |> 
+                dplyr::summarise(area_uf = sum(area_ha, na.rm = TRUE),
+                                 .groups = 'drop')
+            
+            # total de área por estado e por gênero
+            tb_total_genero <- dados |> 
+                # dplyr::filter(
+                #     ano_base == "2019",
+                #     mapeamento == "IBÁ - Relatório Anual 2020",
+                #     # uf %in% c("PR", "SC", "RS")
+                #     uf %in% unique(dados$uf)
+                # ) |>
                 dplyr::filter(
                     ano_base == input$ano_base,
                     mapeamento == input$nome_mapeamento,
                     uf %in% input$uf
                     ) |>
                 dplyr::group_by(uf, genero) |> 
-                dplyr::summarise(area_tot = sum(area_ha, na.rm = TRUE)) |> 
-                dplyr::arrange(dplyr::desc(area_tot))
+                dplyr::summarise(area_tot = sum(area_ha, na.rm = TRUE),
+                                 .groups = 'drop') 
             
-            tb_plot |>
+            # total de área para gerar o plot
+            tb_plot <- tb_total_uf |> 
+                dplyr::left_join(tb_total_genero, by = "uf") |>
+                dplyr::arrange(
+                    dplyr::desc(area_uf),
+                    dplyr::desc(area_tot),
+                    ) |> 
+                dplyr::select(-area_uf)
+            
+            
+            tb_plot |> 
+ 
                 highcharter::hchart(
                     type = "column",
                     highcharter::hcaes(
@@ -115,10 +192,14 @@ mod_infos_uf_server <- function(id, bases) {
                     ),
                     stacking = "normal"
                     ) |> 
-                # highcharter::hc_colors(
-                #     #definir cores
-                #     colors = c('#000004', '#B63679', '#FCFDBF')
-                # ) |>
+                highcharter::hc_colors(
+                    #definir cores
+                    colors = c('#000004', '#B63679', '#FCFDBF')
+                    # colors = definir_cores_genero(tb_plot$genero)
+                ) |>
+                # "eucalipto" = "#35B779",
+                # "pinus" = "#ED7953",
+                # "outros" = "#31688E",
                 highcharter::hc_xAxis(title = list(text = "Estado")) |>
                 highcharter::hc_yAxis(title = list(text = "Área em hectares")) |>
                 highcharter::hc_title(text = "Área plantada por gênero e estado") |> 
