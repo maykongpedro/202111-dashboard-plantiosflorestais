@@ -10,26 +10,29 @@ mod_infos_uf_ui <- function(id, dados){
         dplyr::arrange(ano_base) |> 
         dplyr::pull(ano_base)
     
-    # gerar escolha dos relatórios -> usar um observer
-    # escolhas_relatorios <- dados |> 
-    #     dplyr::distinct(mapeamento) |> 
-    #     dplyr::arrange(mapeamento) |> 
-    #     dplyr::pull(mapeamento)
-    
-
-    
-    # transformar a função acima em uma function separada em outro script R
-    
-    # gerar escolhas de uf -> transformar em um uiOutput
-    escolhas_uf <- dados |> 
-        dplyr::distinct(uf) |> 
-        dplyr::arrange(uf) |>
-        tidyr::drop_na() |> 
-        dplyr::pull(uf)
-    
-    
     ns <- shiny::NS(id)
     tagList(
+        
+        # linha 1 - título ----
+        fluidRow(
+            column(
+                width = 12,
+                h3("Informações de floresta plantada por estado.")
+            )
+        ),
+        
+        # espaço 1 -----
+        br(),
+        
+        # linha 2 - valueBox ----
+        fluidRow(
+            shinydashboard::valueBoxOutput(outputId = ns("area_total_relatorio"), width = 2),
+            shinydashboard::valueBoxOutput(outputId = ns("area_total_pin"), width = 2),
+            shinydashboard::valueBoxOutput(outputId = ns("área_total_euc"), width = 2),
+            shinydashboard::valueBoxOutput(outputId = ns("área_total_outros"), width = 2)
+        ),
+        
+        # linha 3 - inputs ----
         fluidRow(
             box(
                 width = 2,
@@ -73,27 +76,41 @@ mod_infos_uf_ui <- function(id, dados){
             box(
                 width = 3,
                 title = "Dados do relatório exibidos no mapa",
-                selectInput(
+                shinyWidgets::awesomeRadio(
                     inputId = ns("genero_mapa"),
                     label = "Selecione um gênero para exibir no mapa",
                     choices = c("Carregando..." = ""),
-                    multiple = TRUE
+                    #choices = c("Eucalyptus", "Pinus", "Outros"),
+                    # selected = "Pinus",
+                    inline = TRUE
+                    
                 )
+                # selectInput(
+                #     inputId = ns("genero_mapa"),
+                #     label = "Selecione um gênero para exibir no mapa",
+                #     choices = c("Carregando..." = ""),
+                #     multiple = FALSE
+                # )
             )
         ), 
     
+        # linha 4 - gráfico e mapa
         fluidRow(
             # column(width = 6),
             box(
-                width = 6,
+                width = 4,
                 highcharter::highchartOutput(outputId = ns("plot_genero"))
+            ),
+            box(
+                width = 4,
+                highcharter::highchartOutput(outputId = ns("plot_percentual"))
             ),
             #column(width = 2),
             box(
-                width = 6,
+                width = 4,
                 highcharter::highchartOutput(
                     outputId = ns("mapa_genero"),
-                    height = "800px"
+                    height = "600px"
                     )
             )
         )
@@ -106,7 +123,7 @@ mod_infos_uf_ui <- function(id, dados){
 mod_infos_uf_server <- function(id, dados) {
     moduleServer(id, function(input, output, session) {
         
-        # atualizando a lista de mapeamento disponíveis de acordo com o ano
+        # atualizando a lista de mapeamento disponíveis de acordo com o ano ----
         shiny::observe({
             
             # gerar escolhas dos relatórios
@@ -126,7 +143,7 @@ mod_infos_uf_server <- function(id, dados) {
 
         })
         
-        # atualizando a lista de estados disponíveis de acordo com o relatório
+        # atualizando a lista de estados e gêneros disponíveis de acordo com o relatório
         shiny::observeEvent(
             eventExpr = input$nome_mapeamento, 
             handlerExpr = {
@@ -160,18 +177,52 @@ mod_infos_uf_server <- function(id, dados) {
                 dplyr::arrange(genero) |>
                 tidyr::drop_na() |> 
                 dplyr::pull(genero)
+     
+           # atualizar select input dos gêneros
+            # shiny::updateSelectInput(
+            #     session = session,
+            #     inputId = "genero_mapa",
+            #     choices = escolhas_generos,
+            #     selected = escolhas_generos[1] 
+            # )
             
-            # atualizar select input dos gêneros
-            shiny::updateSelectInput(
+            shinyWidgets::updateAwesomeRadio(
                 session = session,
                 inputId = "genero_mapa",
-                choices = escolhas_generos,
-                selected = escolhas_generos[1]
+                # transformar em character para retirar os fatores
+                choices = as.character(escolhas_generos),
+                selected = as.character(escolhas_generos)[1],
+                inline = TRUE
             )
             
         })
         
+        # output - valueBox: área total do relatório
+        output$area_total_relatorio <- shinydashboard::renderValueBox({
+            
+            area_total <- dados |> 
+                dplyr::filter(
+                    ano_base == input$ano_base,
+                    mapeamento == input$nome_mapeamento,
+                    uf %in% input$uf
+                ) |>
+                dplyr::group_by(mapeamento) |> 
+                dplyr::summarise(area_total = sum(area_ha, na.rm = TRUE),
+                                 .groups = 'drop') |> 
+                dplyr::pull(area_total)
+            
+            area_total <- area_total |> 
+                scales::number(big.mark = ".", decimal.mark = ",")
+            
+            shinydashboard::valueBox(
+                value = area_total,
+                subtitle = "Área total do relatório (ha)",
+                icon = shiny::icon("chart-area")
+            )
+        })
         
+        
+        # output - gráfico de colunas
         output$plot_genero <- highcharter::renderHighchart({
             
             # total de área por estado
@@ -268,7 +319,7 @@ mod_infos_uf_server <- function(id, dados) {
             
         })
         
-        
+        # output - mapa de área por gênero
         output$mapa_genero <- highcharter::renderHighchart({
             
             # total de área por estado
@@ -317,21 +368,11 @@ mod_infos_uf_server <- function(id, dados) {
                     dplyr::desc(area_tot),
                 ) |> 
                 dplyr::select(-area_uf) |> 
-                dplyr::filter(genero %in% input$genero_mapa) # filtrando o gênero
-            # dplyr::mutate(
-            #     genero = factor(
-            #         genero,
-            #         levels = c(
-            #             "Eucalyptus",
-            #             "Pinus",
-            #             "Outros",
-            #             "Corte",
-            #             "Acacia",
-            #             "Tectona"
-            #             ),
-            #         ordered = TRUE
-            #         )
-            #     )
+                # filtrando o gênero 
+                dplyr::filter(genero %in% input$genero_mapa) |>
+                # transformando 0 em NA para o mapa pintar de cinza
+                dplyr::mutate(area_tot = dplyr::na_if(area_tot, 0))
+
             
             # montando plot
             p_map <- highcharter::hcmap(
@@ -343,31 +384,26 @@ mod_infos_uf_server <- function(id, dados) {
                 borderColor = "#FAFAFA",
                 borderWidth = 0.1,
                 name = "Estado",
-                dataLabels = list(enabled = TRUE, format = "{point.code}"),
+                dataLabels = list(enabled = TRUE, format = "{point.uf}"),
                 tooltip = list(valueDecimals = 0, valueSuffix = " ha"),
                 download_map_data = F
             ) |>
                 highcharter::hc_colorAxis(
                     stops = highcharter::color_stops(
-                        n = 10, 
-                        substring(viridis::viridis(20, 
+                        n = 10,
+                        substring(viridis::viridis(20,
                                                    option = "viridis"
-                                                   ), 
-                                  0, 
+                                                   ),
+                                  0,
                                   7)
                         )
-                ) |>
-                #highcharter::hc_legend(ggplot2::element_blank()) |>
-                # highcharter::hc_colorAxis(
-                #     minColor = "#8bbfa6",
-                #     maxColor = "#257f54"
-                # )
+                ) 
                 # highcharter::hc_xAxis(title = list(text = "Estado")) |>
                 # highcharter::hc_yAxis(title = list(text = "Área em hectares")) |>
-                # highcharter::hc_title(text = "Área plantada por gênero e estado") |> 
-                # highcharter::hc_subtitle(text = input$nome_mapeamento) |> 
-                highcharter::hc_add_theme(highcharter::hc_theme_elementary()) 
-            
+                # highcharter::hc_title(text = "Área plantada por gênero e estado") |>
+                # highcharter::hc_subtitle(text = input$nome_mapeamento) |>
+                #highcharter::hc_add_theme(highcharter::hc_theme_elementary())
+
             p_map
             
         })

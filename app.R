@@ -28,9 +28,7 @@ ui <- dashboardPage(
             # página 2 - informações para cada relatório
             menuItem(text = "Informações por relatório", tabName = "info_relatorio"),
             # página 3 - informações em nível estadual
-            menuItem(text = "Informações estaduais", tabName = "info_uf"),
-            # página 4 - informações em nível de município
-            menuItem(text = "Informações municipais", tabName = "info_muni")
+            menuItem(text = "Informações estaduais", tabName = "info_uf")
         )
     ),
     body = dashboardBody(
