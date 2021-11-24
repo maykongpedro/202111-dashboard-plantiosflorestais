@@ -27,9 +27,9 @@ mod_infos_uf_ui <- function(id, dados){
         # linha 2 - valueBox ----
         fluidRow(
             shinydashboard::valueBoxOutput(outputId = ns("area_total_relatorio"), width = 2),
+            shinydashboard::valueBoxOutput(outputId = ns("area_total_euc"), width = 2),
             shinydashboard::valueBoxOutput(outputId = ns("area_total_pin"), width = 2),
-            shinydashboard::valueBoxOutput(outputId = ns("área_total_euc"), width = 2),
-            shinydashboard::valueBoxOutput(outputId = ns("área_total_outros"), width = 2)
+            shinydashboard::valueBoxOutput(outputId = ns("area_total_outros"), width = 2)
         ),
         
         # linha 3 - inputs ----
@@ -96,7 +96,6 @@ mod_infos_uf_ui <- function(id, dados){
     
         # linha 4 - gráfico e mapa
         fluidRow(
-            # column(width = 6),
             box(
                 width = 4,
                 highcharter::highchartOutput(outputId = ns("plot_genero"))
@@ -105,7 +104,6 @@ mod_infos_uf_ui <- function(id, dados){
                 width = 4,
                 highcharter::highchartOutput(outputId = ns("plot_percentual"))
             ),
-            #column(width = 2),
             box(
                 width = 4,
                 highcharter::highchartOutput(
@@ -200,25 +198,120 @@ mod_infos_uf_server <- function(id, dados) {
         # output - valueBox: área total do relatório
         output$area_total_relatorio <- shinydashboard::renderValueBox({
             
-            area_total <- dados |> 
+            area_total <- dados |>
                 dplyr::filter(
                     ano_base == input$ano_base,
                     mapeamento == input$nome_mapeamento,
                     uf %in% input$uf
                 ) |>
-                dplyr::group_by(mapeamento) |> 
+                dplyr::group_by(mapeamento) |>
                 dplyr::summarise(area_total = sum(area_ha, na.rm = TRUE),
-                                 .groups = 'drop') |> 
-                dplyr::pull(area_total)
-            
-            area_total <- area_total |> 
+                                 .groups = 'drop') |>
+                dplyr::pull(area_total) |> 
                 scales::number(big.mark = ".", decimal.mark = ",")
+
+            # browser()
+            # area_total <- dados |> gerar_valor_para_valuebox(
+            #     #base = dados,
+            #     input$ano_base,
+            #     input$nome_mapeamento,
+            #     input$uf
+            #     # genero_desejado = NULL,
+            #     # todos_os_generos = TRUE
+            # )
+
+            # area_total <- gerar_valor_para_valuebox(
+            #     dados,
+            #     ano = 2016,
+            #     "AGEFLOR - A indústria de base florestal no Rio Grande do Sul 2017",
+            #     uf %in% unique(dados$uf),
+            #     genero_desejado = NULL,
+            #     todos_os_generos = TRUE
+            # )
             
             shinydashboard::valueBox(
                 value = area_total,
                 subtitle = "Área total do relatório (ha)",
                 icon = shiny::icon("chart-area")
             )
+        })
+        
+        # output - valueBox: área total de Eucalipto
+        output$area_total_euc <- shinydashboard::renderValueBox({
+            
+            area_total_euc <- dados |>
+                dplyr::filter(
+                    ano_base == input$ano_base,
+                    mapeamento == input$nome_mapeamento,
+                    uf %in% input$uf,
+                    genero == "Eucalyptus"
+                ) |>
+                dplyr::group_by(mapeamento) |>
+                dplyr::summarise(area_total = sum(area_ha, na.rm = TRUE),
+                                 .groups = 'drop') |>
+                dplyr::pull(area_total) |> 
+                scales::number(big.mark = ".", decimal.mark = ",")
+            
+            
+            shinydashboard::valueBox(
+                value = area_total_euc,
+                subtitle = "Área total com Eucalyptus (ha)",
+                icon = shiny::icon("pagelines"),
+                color = "olive"
+            )
+            
+        })
+        
+        # output - valueBox: área total de Pinus
+        output$area_total_pin <- shinydashboard::renderValueBox({
+            
+            area_total_pin <- dados |>
+                dplyr::filter(
+                    ano_base == input$ano_base,
+                    mapeamento == input$nome_mapeamento,
+                    uf %in% input$uf,
+                    genero == "Pinus"
+                ) |>
+                dplyr::group_by(mapeamento) |>
+                dplyr::summarise(area_total = sum(area_ha, na.rm = TRUE),
+                                 .groups = 'drop') |>
+                dplyr::pull(area_total) |> 
+                scales::number(big.mark = ".", decimal.mark = ",")
+            
+            
+            shinydashboard::valueBox(
+                value = area_total_pin,
+                subtitle = "Área total com Pinus (ha)",
+                icon = shiny::icon("tree"),
+                color = "orange"
+            )
+            
+        })
+        
+        # output - valueBox: área total de Pinus
+        output$area_total_outros <- shinydashboard::renderValueBox({
+            
+            area_total_outros <- dados |>
+                dplyr::filter(
+                    ano_base == input$ano_base,
+                    mapeamento == input$nome_mapeamento,
+                    uf %in% input$uf,
+                    genero != c("Eucalyptus", "Pinus")
+                ) |>
+                dplyr::group_by(mapeamento) |>
+                dplyr::summarise(area_total = sum(area_ha, na.rm = TRUE),
+                                 .groups = 'drop') |>
+                dplyr::pull(area_total) |> 
+                scales::number(big.mark = ".", decimal.mark = ",")
+            
+            
+            shinydashboard::valueBox(
+                value = area_total_outros,
+                subtitle = "Área total com outros gêneros (ha)",
+                icon = shiny::icon("tree"),
+                color = "purple"
+            )
+            
         })
         
         
@@ -271,20 +364,6 @@ mod_infos_uf_server <- function(id, dados) {
                     dplyr::desc(area_tot),
                     ) |> 
                 dplyr::select(-area_uf) 
-                # dplyr::mutate(
-                #     genero = factor(
-                #         genero,
-                #         levels = c(
-                #             "Eucalyptus",
-                #             "Pinus",
-                #             "Outros",
-                #             "Corte",
-                #             "Acacia",
-                #             "Tectona"
-                #             ),
-                #         ordered = TRUE
-                #         )
-                #     )
                         
             # montando plot
             tb_plot |> 
