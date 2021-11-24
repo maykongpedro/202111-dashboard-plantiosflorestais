@@ -38,9 +38,10 @@ dados_muni_agrupados <- dados_muni |>
     dplyr::summarise(area_ha = sum(area_ha, na.rm = TRUE)) |> 
     dplyr::ungroup()
 
+
 # unir bases
 dados_completos <- dplyr::bind_rows(dados_uf, dados_muni_agrupados)
-dados_completos |> View()
+# dados_completos |> View()
 
 
 # ajustando o fator dos gênero
