@@ -5,13 +5,9 @@ library(shinydashboard)
 
 # Carregar bases ----------------------------------------------------------
 dados <- readr::read_rds("data/dados_completos.rds")
+tab_informativa <- readr::read_rds("data/tab_informativa.rds")
+
 # dados |> dplyr::glimpse()
-
-# shape dos estados
-# shp_br <-
-#   geobr::read_state() |>
-#   dplyr::rename(uf = abbrev_state)
-
 
 # Ui ----------------------------------------------------------------------
 ui <- dashboardPage(
@@ -19,15 +15,12 @@ ui <- dashboardPage(
     skin = "green",
     header = dashboardHeader(
         title = "Plantios florestais"
-        #titleWidth = 275
     ),
     sidebar = dashboardSidebar(
         sidebarMenu(
             # página 1 - contexto
             menuItem(text = "Contexto", tabName = "contexto"),
-            # página 2 - informações para cada relatório
-            menuItem(text = "Informações por relatório", tabName = "info_relatorio"),
-            # página 3 - informações em nível estadual
+            # página 2 - informações em nível estadual
             menuItem(text = "Informações estaduais", tabName = "info_uf")
         )
     ),
@@ -35,7 +28,7 @@ ui <- dashboardPage(
       tabItems(
         tabItem(
           tabName = "contexto",
-          mod_contexto_ui("contexto_geral", dados)
+          mod_contexto_ui("contexto_geral", tab_informativa)
         ),
         tabItem(
           tabName = "info_uf",
@@ -44,14 +37,12 @@ ui <- dashboardPage(
       )
     )
 )
-    
-    
 
 
 # Server ------------------------------------------------------------------
 server <- function(input, output, session) {
   
-  mod_contexto_server("contexto_geral", dados, shp_br)
+  mod_contexto_server("contexto_geral", tab_informativa)
   mod_infos_uf_server("informacoes_uf", dados)
   
 }
