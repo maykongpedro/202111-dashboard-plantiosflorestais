@@ -1,0 +1,32 @@
+---
+title: "contexto"
+output: html_document
+---
+
+# Contextualização
+
+A criação desse dashboard ocorreu como requisito para obtenção do certificado de conclusão do curso de [Dashboards](https://curso-r.com/cursos/dashboards/) da Curso R. As técnicas aqui aplicadas foram ensinadas durante as aulas, sendo assim, esse app também tem como fim aplicar o conhecimento adquirido durante o período de curso.
+
+# Objetivo
+
+Esse dashboard tem como objetivo resumir informações de área (em hectares) a nível estadual das florestas plantadas no Brasil.
+
+# Dados
+
+Os dados utilizados são referentes às duas bases existentes no pacote [maykongpedro](https://github.com/maykongpedro)/[plantiosflorestais](https://github.com/maykongpedro/plantiosflorestais) , pacote criado pelo mesmo autor desse dashboard, que consolida informações de área dos mapeamentos e relatórios públicos disponíveis sobre floresta plantada no país (para mais detalhes, acessar página do pacote).
+
+A fonte dos dados é o respectivo relatório original que publicou os números de área. Cada um dos relatórios pode ser acessado facilmente pela tabela à direita, que resume os mapeamentos existentes no pacote e no dashboard atual.
+
+Para detalhamento das metodologias usadas nos mapeamentos ou detalhes sobre o mercado florestal, ou em que contexto se aplicam essas informações de área, recomenda-se a leitura dos relatórios originais, que possuem informações relevantes sobre o aspecto do negócio florestal.
+
+# Notas adicionais
+
+Há relatórios mais amplos, que compilam a informação a nível nacional por estado, como é o caso da Indústria Brasileira de Árvores (IBÁ); e há relatórios mais detalhados que compilam a informação por município ou macroregião estadual, este último tendo como exemplo o relatório da Associação Paranaense de Empresas de Base Florestal (APRE).
+
+Esse painel se propôs a trazer apenas informações gerais, sem detalhar municípios e regionais. Entretanto, é da ideia do autor incrementar esse dashboard com o tempo para que ele se torne uma consulta oficial ao pacote, facilitando assim o uso por usuários além da comunidade R.
+
+Agradeço aos professores William e Júlio da Curso R, que proporcionaram um curso bem estruturado e completo sobre Shiny.
+
+**Aluno:** Maykon G. Pedro. **Data:** 22/11/2021.
+
+[GitHub](https://github.com/maykongpedro)\| [Linkedin](https://www.linkedin.com/in/maykon-gabriel-5ab009170/)

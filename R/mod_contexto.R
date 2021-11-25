@@ -6,12 +6,11 @@ mod_contexto_ui <- function(id, dados) {
 
     ns <- shiny::NS(id)
     
-    # tagList(
+    tagList(
         fluidRow(
             box(
-                width = 5
-                # definir output textual
-                # escrever texto de contexto
+                width = 5,
+                includeMarkdown("docs/texto_introducao.Rmd")
             ),
             box(
                 width = 7,
@@ -21,7 +20,7 @@ mod_contexto_ui <- function(id, dados) {
                 reactable::reactableOutput(outputId = ns("tabela"))
             )
         )
-    # )
+    )
     
 }
 
@@ -29,7 +28,6 @@ mod_contexto_ui <- function(id, dados) {
 mod_contexto_server <- function(id, dados) {
     moduleServer(id, function(input, output, session){
         
-        # dados <- tab_informativa
         # dados |> dplyr::glimpse()
         
         output$tabela <- reactable::renderReactable({
