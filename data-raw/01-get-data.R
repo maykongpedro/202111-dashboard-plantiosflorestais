@@ -9,6 +9,9 @@ dados_uf <- plantiosflorestais::mapeamentos_estados |>
 dados_muni <- plantiosflorestais::mapeamentos_municipios |> 
     dplyr::mutate(base = "Mapeamentos municípios")    
 
+tab_informativa <- 
+    readxl::read_excel("data-raw/excel/dados_informativos_plantiosflorestais.xlsx") |> 
+    janitor::clean_names()
 
 # Agrupar os dados de municípios para ter infos resumidas -----------------
 
@@ -61,4 +64,4 @@ dados_completos <- dados_completos |>
 dados_uf |> saveRDS("./data/dados_uf.rds")
 dados_muni |> saveRDS("./data/dados_muni.rds")
 dados_completos |> saveRDS("./data/dados_completos.rds")
-
+tab_informativa |> saveRDS("./data/tab_informativa.rds")
